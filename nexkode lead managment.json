@@ -1,0 +1,661 @@
+{
+  "name": "nexkode lead managment",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b3c87b45-d9c0-4022-b3ab-8ac36f945582",
+      "name": "Webhook",
+      "webhookId": "38c26529-91d8-4619-88ad-c676fdf9942a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dac5172c-a132-4f47-a2ab-9b2240752f7a",
+              "name": "name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "7c112e65-029c-4c21-acd2-d19e11a27cfb",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "e23df32d-bdc8-4360-a893-f1d536442a9b",
+              "name": "company",
+              "value": "={{ $json.body.company }}",
+              "type": "string"
+            },
+            {
+              "id": "31e80854-28f1-4720-a9bd-58652c88f124",
+              "name": "service",
+              "value": "={{ $json.body.service }}",
+              "type": "string"
+            },
+            {
+              "id": "a8e2f01a-05a3-44e6-b5c7-d18a90cdec42",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "519e9695-4fd6-4cdd-877a-f06bc6292def",
+              "name": "received_at",
+              "value": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3efde919-3714-48db-b376-2fe86a678b53",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Classify this incoming lead for NEXKODE, a digital agency offering: Website Development, Software Development, Video Editing, Graphic Design, Social Media Management.\n\nLead name: {{ $json.name }}\nCompany: {{ $json.company }}\nService selected on form: {{ $json.service }}\nMessage: {{ $json.message }}\n\nRules for priority:\n- High: clear intent to hire, mentions budget, deadline, or an urgent need\n- Medium: interested but details are vague\n- Low: just asking questions or browsing",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a lead classification assistant for NEXKODE, a digital agency offering: Website Development, Software Development, Video Editing, Graphic Design, Social Media Management.\n\nClassify each incoming lead and respond only in the required JSON format.\n\nRules for priority:\n- High: clear intent to hire, mentions budget, deadline, or an urgent need\n- Medium: interested but details are vague\n- Low: just asking questions or browsing"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        0
+      ],
+      "id": "b0f8a5c0-874e-4960-acb2-b566e6a134a8",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        384,
+        208
+      ],
+      "id": "47788348-057c-48a9-ab03-6b54c17b2b4c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "UszmNFVRJ1B7nUHa",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"service_category\": \"Website Development\",\n  \"priority\": \"High\",\n  \"summary\": \"Startup founder needs a website.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        208
+      ],
+      "id": "4b3a531a-5aaf-48e5-aa0a-f711fa4daae7",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c605ba0c-8e7c-4826-978a-6205f7ec21a4",
+              "name": "name",
+              "value": "={{ $('Edit Fields').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "97384221-f2fb-4b33-b843-4bed3c3a2340",
+              "name": "email",
+              "value": "={{ $('Edit Fields').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "e8196f6f-7837-4813-8f08-2285507eb976",
+              "name": "company",
+              "value": "={{ $('Edit Fields').item.json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "6c52805b-5d70-4d2b-93e2-4eb81a5f1a20",
+              "name": "service",
+              "value": "={{ $('Edit Fields').item.json.service }}",
+              "type": "string"
+            },
+            {
+              "id": "a38173f3-3ffa-4097-834a-b4543907d3ac",
+              "name": "message",
+              "value": "={{ $('Edit Fields').item.json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "f19e203b-afab-4836-84db-60ea839add81",
+              "name": "received_at",
+              "value": "={{ $('Edit Fields').item.json.received_at }}",
+              "type": "string"
+            },
+            {
+              "id": "2d581772-eb2a-4b4f-ad1d-0f970a563fce",
+              "name": "service_category",
+              "value": "={{ $json.output.service_category }}",
+              "type": "string"
+            },
+            {
+              "id": "fe9cd11d-c4f1-4e25-8f76-41b94bd64e4b",
+              "name": "priority",
+              "value": "={{ $json.output.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "432e6c64-c4af-4de5-be4d-fdafe929ca15",
+              "name": "summary",
+              "value": "={{ $json.output.summary }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        816,
+        0
+      ],
+      "id": "1479ffc3-557f-4693-bbf7-48d70b272cc2",
+      "name": "combine lead"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1IfFPNGaLgiNUxuxFgD5p4JMAILT0v0FI9NCd7q-oeqQ",
+          "mode": "list",
+          "cachedResultName": "nexkode leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IfFPNGaLgiNUxuxFgD5p4JMAILT0v0FI9NCd7q-oeqQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IfFPNGaLgiNUxuxFgD5p4JMAILT0v0FI9NCd7q-oeqQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.name }}",
+            "email": "={{ $json.email }}",
+            "company": "={{ $json.company }}",
+            "service_selected": "={{ $json.service }}",
+            "service_category": "={{ $json.service_category }}",
+            "priority": "={{ $json.priority }}",
+            "summary": "={{ $json.summary }}",
+            "message": "={{ $json.message }}",
+            "received_at": "={{ $json.received_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "service_selected",
+              "displayName": "service_selected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "service_category",
+              "displayName": "service_category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "55dc1fd7-2ac9-420b-8403-c006bcae86ea",
+      "name": "Append row in sheet",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ubsWnl7klrQ3jJ3G",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d6a387cd-7606-40a4-a37a-721271b735a0",
+              "leftValue": "={{ $('combine lead').item.json.priority }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "cc4edd8e-95cb-49bc-88a8-0c8c9a6cd643",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "YOUR ADMIN EMAIL",
+        "toEmail": "YOUR PERSONAL EMAIL",
+        "subject": "=🔥 High Priority Lead: {{ $('combine lead').item.json.name }} ({{ $('combine lead').item.json.service_category }})",
+        "emailFormat": "text",
+        "text": "=New high priority lead received.\n\nName: {{ $('combine lead').item.json.name }}\nEmail: {{ $('combine lead').item.json.email }}\nCompany: {{ $('combine lead').item.json.company }}\nService: {{ $('combine lead').item.json.service_category }}\nSummary: {{ $('combine lead').item.json.summary }}\n\nOriginal message:\n{{ $('combine lead').item.json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1488,
+        -96
+      ],
+      "id": "ff4e3625-f29b-4799-ac81-0ff184d87684",
+      "name": "Send an Email",
+      "webhookId": "f10bac5b-2b55-428c-a3f8-cdc8d83edfd6",
+      "credentials": {
+        "smtp": {
+          "id": "yZ5MIYpZYBZvapj7",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a reply to this lead.\n\nLead name: {{ $('combine lead').item.json.name }}\nService they want: {{ $('combine lead').item.json.service_category }}\nTheir message: {{ $('combine lead').item.json.message }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You write short, warm, professional auto-reply emails for NEXKODE, a digital agency (website development, software development, video editing, graphic design, social media management).  Rules: - Maximum 80 words. - Address the lead by name and mention their specific request in one sentence. - Say the NEXKODE team will get back to them soon. Our working hours are Monday to Saturday, 10 AM to 7 PM PKT. - Do NOT mention prices, timelines, or promises that were not given to you. - Sign off as \"NEXKODE Team\", contact: info@nexkode.com. - Output only the email body, no subject line."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1504,
+        144
+      ],
+      "id": "1ea247aa-769c-40fb-8c0d-ac56141ec80c",
+      "name": "reply writer"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        352
+      ],
+      "id": "c3c286a8-a799-4655-8a83-d66fc7bee9ee",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "UszmNFVRJ1B7nUHa",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "YOUR ADMIN EMAIL",
+        "toEmail": "={{ $('combine lead').item.json.email }}",
+        "subject": "=Thanks for contacting NEXKODE, {{ $('combine lead').item.json.name }}",
+        "emailFormat": "text",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1872,
+        144
+      ],
+      "id": "c7317fe4-b3b1-437d-9275-ebccf147379f",
+      "name": "Send an Email1",
+      "webhookId": "0cb26dee-a11d-4a83-b87d-c3bbcd0d873a",
+      "credentials": {
+        "smtp": {
+          "id": "yZ5MIYpZYBZvapj7",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"success\", \"message\": \"Thanks {{ $('combine lead').item.json.name }}, we received your request.\" }",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2096,
+        144
+      ],
+      "id": "9bd8e60a-dd96-4286-ad22-e762a828c799",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "combine lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "combine lead": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "reply writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email": {
+      "main": [
+        [
+          {
+            "node": "reply writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "reply writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "reply writer": {
+      "main": [
+        [
+          {
+            "node": "Send an Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Karachi",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "b27e7c0f-e5ad-4aa8-89b4-7e2404690831",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "48edbeeae8842b465114528257c6190c8c2b2f7afd5e64bf39b339b82d5696fe"
+  },
+  "nodeGroups": [],
+  "id": "lABDiHq9bLo1tp5l",
+  "tags": []
+}

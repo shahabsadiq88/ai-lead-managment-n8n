@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXKODE - Contact Form</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f6fb; margin: 0; padding: 24px; color: #1a1a2e; }
+  .card { max-width: 480px; margin: 0 auto; background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p.sub { margin: 0 0 20px; color: #555; font-size: 14px; }
+  label { display: block; font-size: 13px; margin: 14px 0 4px; font-weight: bold; }
+  input, select, textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ccd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+  textarea { min-height: 100px; resize: vertical; }
+  button { margin-top: 20px; width: 100%; padding: 12px; border: 0; border-radius: 8px; background: #2f5597; color: #fff; font-size: 15px; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: wait; }
+  #status { margin-top: 16px; font-size: 14px; }
+  .ok { color: #1b7f3b; } .err { color: #c0392b; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Contact NEXKODE</h1>
+  <p class="sub">Tell us about your project and we will get back to you.</p>
+  <form id="leadForm">
+    <label for="name">Name</label>
+    <input id="name" name="name" required>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" required>
+    <label for="company">Company</label>
+    <input id="company" name="company">
+    <label for="service">Service Required</label>
+    <select id="service" name="service" required>
+      <option value="">Select a service</option>
+      <option>Website Development</option>
+      <option>Software Development</option>
+      <option>Video Editing</option>
+      <option>Graphic Design</option>
+      <option>Social Media Management</option>
+      <option>Other</option>
+    </select>
+    <label for="message">Message</label>
+    <textarea id="message" name="message" required></textarea>
+    <button id="submitBtn" type="submit">Send</button>
+  </form>
+  <div id="status"></div>
+</div>
+
+<script>
+  // Change this to your production webhook URL (it must contain /webhook/ and NOT /webhook-test/)
+  const WEBHOOK_URL = "https://YOUR-N8N-URL/webhook/lead-intake";
+
+  const form = document.getElementById("leadForm");
+  const statusEl = document.getElementById("status");
+  const btn = document.getElementById("submitBtn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    statusEl.className = "";
+    statusEl.textContent = "Sending...";
+
+    const payload = Object.fromEntries(new FormData(form).entries());
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Server returned " + res.status);
+      const data = await res.json();
+      statusEl.className = "ok";
+      statusEl.textContent = data.message || "Thanks, we received your request.";
+      form.reset();
+    } catch (err) {
+      statusEl.className = "err";
+      statusEl.textContent = "Something went wrong: " + err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
